@@ -1,7 +1,11 @@
-from defs import *
-
 from tqdm import tqdm
 import numpy as np
+
+from util import *
+vec3 = np.array # NOTE: not checking length, assuming input == 3 
+point3 = vec3
+
+unit_vector = lambda v: v / np.linalg.norm(v)
 
 def hit_sphere(center: point3, radius: float, ray: Ray):
 	CQ = center - ray.origin # C-Q
