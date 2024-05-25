@@ -3,9 +3,23 @@ from defs import *
 from tqdm import tqdm
 import numpy as np
 
-def ray_color(r):
-	unit_direction = r.direction
-	unit_direction /= np.linalg.norm(unit_direction)
+def hit_sphere(center: point3, radius: float, ray: Ray):
+	CQ = center - ray.origin # C-Q
+	a = np.dot(ray.direction, ray.direction)
+	b = -2.0 * np.dot(ray.direction, CQ)
+	c = np.dot(CQ, CQ) - radius*radius
+	discriminant =  b*b - 4*a*c 
+	return -1 if discriminant < 0 else (-b-np.sqrt(discriminant))/(2*a)
+
+
+def ray_color(r: Ray):
+	t = hit_sphere( vec3([0, 0, -1]), 0.5, r)
+	
+	if t > 0:		
+		N = unit_vector(r.at(t) - vec3([0, 0, -1]))
+		return pack_color( 0.5 * np.array( [N[0]+1, N[1]+1, N[2]+1] ) )
+
+	unit_direction = unit_vector( r.direction )
 	a = 0.5*(1. + unit_direction[1])
 	return pack_color( (1.-a)*np.array([1., 1., 1.]) + a*np.array([0.5, 0.7, 1.0]) )
 
@@ -49,6 +63,7 @@ PIXELS_X, PIXELS_Y, PIXELS_Z = (
 def ray_trace(x,y,z):
 	r = Ray(camera_center, np.array([x,y,z]))
 	return ray_color(r)
+
 
 ray_trace = np.vectorize(ray_trace)
 

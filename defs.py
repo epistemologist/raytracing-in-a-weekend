@@ -5,9 +5,11 @@ from typing import List
 vec3 = np.array # NOTE: not checking length, assuming input == 3 
 point3 = vec3
 
-@dataclass
-class Color:
-	color: vec3
+unit_vector = lambda v: v / np.linalg.norm(v)
+
+class Color:	
+	def __init__(self, color: vec3):
+		self.color = color
 	
 	def write_color(self):
 		print(f"{int(256.*self.color[0])} {int(256.*self.color[1])} {int(256.*self.color[2])}")
@@ -30,5 +32,5 @@ class Ray:
 	origin: vec3
 	direction: vec3
 
-	def at(t: float) -> vec3:
+	def at(self, t: float) -> vec3:
 		return self.origin + t*self.direction
