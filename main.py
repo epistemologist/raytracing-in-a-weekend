@@ -1,37 +1,31 @@
 from tqdm import tqdm
+from math import inf
 import numpy as np
 
 from util import *
-vec3 = np.array # NOTE: not checking length, assuming input == 3 
-point3 = vec3
+from ray import Ray
+from hittable import *
 
-unit_vector = lambda v: v / np.linalg.norm(v)
+def ray_color(r: Ray, world: Hittable) -> int:
+	rec: HitRecord = world.hit(r, 0, inf)
+	if rec is not None:
+		return pack_color( 0.5 * (rec.normal + np.array([1.,1.,1.])) )
 
-def hit_sphere(center: point3, radius: float, ray: Ray):
-	CQ = center - ray.origin # C-Q
-	a = np.dot(ray.direction, ray.direction)
-	b = -2.0 * np.dot(ray.direction, CQ)
-	c = np.dot(CQ, CQ) - radius*radius
-	discriminant =  b*b - 4*a*c 
-	return -1 if discriminant < 0 else (-b-np.sqrt(discriminant))/(2*a)
-
-
-def ray_color(r: Ray):
-	t = hit_sphere( vec3([0, 0, -1]), 0.5, r)
-	
-	if t > 0:		
-		N = unit_vector(r.at(t) - vec3([0, 0, -1]))
-		return pack_color( 0.5 * np.array( [N[0]+1, N[1]+1, N[2]+1] ) )
-
-	unit_direction = unit_vector( r.direction )
-	a = 0.5*(1. + unit_direction[1])
-	return pack_color( (1.-a)*np.array([1., 1., 1.]) + a*np.array([0.5, 0.7, 1.0]) )
+	unit_direction = unit_vector(r.direction)
+	a = 0.5*(unit_direction[1] + 1.)
+	return pack_color(  (1.-a) * np.array([1., 1., 1.]) + a * np.array([0.5, 0.7, 1.]) )
 
 aspect_ratio = 16. / 9.
 image_width = 400
 
 # Get image height
 image_height = max( int(image_width / aspect_ratio), 1)
+
+# World
+world = HittableList(objects = [
+	Sphere(point3([0,0,-1]), 0.5),
+	Sphere(point3([0,-100.5,-1]), 100),
+])
 
 # Camera
 focal_length = 1.
@@ -66,7 +60,7 @@ PIXELS_X, PIXELS_Y, PIXELS_Z = (
 
 def ray_trace(x,y,z):
 	r = Ray(camera_center, np.array([x,y,z]))
-	return ray_color(r)
+	return ray_color(r, world)
 
 
 ray_trace = np.vectorize(ray_trace)
