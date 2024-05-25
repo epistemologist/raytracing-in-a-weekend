@@ -1,6 +1,7 @@
 import numpy as np
+from math import inf
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 vec3 = np.array # NOTE: not checking length, assuming input == 3 
 point3 = vec3
@@ -28,4 +29,23 @@ def unpack_color(n: int) -> List[int]:
 		(n & (255<<8)) >> 8,
 		n & 255
 	]
+
+class Interval:
+	def __init__(self, a: Optional[float], b: Optional[float]):
+		if a is None or b is None:
+			self.a = -inf; self.b = inf
+		else:
+			self.a = a; self.b = b
+
+	def size(self) -> float:
+		return self.b - self.a
+	
+	def contains(self, x: float) -> bool:
+		return self.a <= x <= self.b
+	
+	def surrounds(self, x: float) -> bool:
+		return self.a < x < self.b
+
+Interval.EMPTY = Interval(inf, -inf)
+Interval.UNIVERSE = Interval(-inf, inf)
 
