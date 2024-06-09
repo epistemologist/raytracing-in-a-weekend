@@ -17,14 +17,15 @@ class HitRecord:
 
 class Hittable(ABC):	
 	@abstractmethod
-	def hit(self, ray: Ray, ray_tmin: float, ray_tmax: float) -> Optional[HitRecord]:
+	def hit(self, ray: Ray, ray_t: Interval) -> Optional[HitRecord]:
 		pass
 
 class Sphere(Hittable):
 	def __init__(self, center: point3, radius: float):
 		self.center = center
 		self.radius = max(0, radius)
-	def hit(self, ray: Ray, ray_tmin: float, ray_tmax: float):
+	#def hit(self, ray: Ray, ray_tmin: float, ray_tmax: float):
+	def hit(self, ray: Ray, ray_t: Interval):
 		OC = self.center - ray.origin
 		a = length_squared( ray.direction )
 		h = np.dot(ray.direction, OC)
@@ -36,7 +37,7 @@ class Sphere(Hittable):
 		sqrtd = np.sqrt(discriminant)
 		r1 = (h-sqrtd)/a; r2 = (h+sqrtd)/a
 		for r in [r1, r2]:
-			if ray_tmin <= r <= ray_tmax:
+			if ray_t.contains(r):
 				t = r
 				p = ray.at(t)
 				normal = (p - self.center) / self.radius
@@ -55,12 +56,12 @@ class HittableList(Hittable):
 		self.objects: List[Hittable] = [] if objects is None else objects
 	
 	# append/clear objects by accessing the underlying list field
-	def hit(self, ray: Ray, ray_tmin: float, ray_tmax: float) -> Optional[HitRecord]:
+	def hit(self, ray: Ray, ray_t: Interval) -> Optional[HitRecord]:
 		tmp_rec = None
 		hit_anything = False
-		closest_so_far = ray_tmax
+		closest_so_far = ray_t.b
 		for obj in self.objects:
-			curr_hit_rec = obj.hit( ray, ray_tmin, closest_so_far )
+			curr_hit_rec = obj.hit( ray, Interval( ray_t.a, closest_so_far ) )
 			if curr_hit_rec is not None:
 				tmp_rec = curr_hit_rec
 				hit_anything = True
